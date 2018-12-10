@@ -48,20 +48,21 @@ public class Main {
             double askLM = currencyClm.rates.get(0).ask;
             double calculate100PLN = (1 / midToday) * 100;
             double calculate100PLNbuyLastMonth = (1 / askLM) * 100;
-            double calculate100PLNsellToday = (1 / bidToday) * 100;
+            double boughtLastMonth = 100/askLM;
+            double soldToday = boughtLastMonth * bidToday;
             String currencyName = currencyA.getCurrency();
             String effectiveDate = currencyA.rates.get(0).effectiveDate;
             String code = currencyCode.toString().toUpperCase();
 
-            double difference = calculate100PLNsellToday - calculate100PLNbuyLastMonth;
-            if (difference >= 0) {
+            double balance = soldToday-100;
+            if (balance >= 0) {
                 compareBidAsk = "z zyskiem";
             } else {
                 compareBidAsk = "ze stratą";
             }
 
             System.out.printf("Waluta: %-18s | %s | %.4f PLN | 100 PLN = %.2f %s\n", currencyName, effectiveDate, midToday, calculate100PLN, code);
-            System.out.printf("%-27s| %s za 100 PLN można było kupić %.2f %s , dzisiaj można je sprzedać %s %.2f PLN\n", "", lastMonth, calculate100PLNbuyLastMonth, code, compareBidAsk, difference);
+            System.out.printf("%-27s| %s za 100 PLN można było kupić %.2f %s , dzisiaj można je sprzedać %s %.2f PLN\n", "", lastMonth, calculate100PLNbuyLastMonth, code, compareBidAsk, balance);
             System.out.println();
         }
     }
