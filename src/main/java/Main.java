@@ -1,4 +1,5 @@
 import com.google.gson.Gson;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +16,6 @@ public class Main {
         String urlTableA = "http://api.nbp.pl/api/exchangerates/rates/a/";
         String urlTableC = "http://api.nbp.pl/api/exchangerates/rates/c/";
         LocalDate lastMonth = LocalDate.now().minusMonths(1);
-        System.out.println(lastMonth);
         List<CurrencyCode> currencyCodes = Arrays.asList(CurrencyCode.values());
         for (CurrencyCode currencyCode : currencyCodes) {
             String urlStringA = String.valueOf(new StringBuilder(urlTableA).append(currencyCode).append(FORMAT));
@@ -30,7 +30,7 @@ public class Main {
             String jsonCurrencyRateA = getCurrencyFromUrl(urlA);
             String jsonCurrencyRateC = getCurrencyFromUrl(urlC);
             String jsonCurrencyRateClm = getCurrencyFromUrl(urlClm);
-            while (jsonCurrencyRateClm.equals("404")){
+            while (jsonCurrencyRateClm.equals("404")) {
                 lastMonth = lastMonth.minusDays(1);
                 urlLastMonth = String.valueOf(new StringBuilder(urlTableC).append(currencyCode).append("/").append(lastMonth).append(FORMAT));
                 urlClm = new URL(urlLastMonth);
@@ -48,13 +48,13 @@ public class Main {
             double askLM = currencyClm.rates.get(0).ask;
             double calculate100PLN = (1 / midToday) * 100;
             double calculate100PLNbuyLastMonth = (1 / askLM) * 100;
-            double boughtLastMonth = 100/askLM;
+            double boughtLastMonth = 100 / askLM;
             double soldToday = boughtLastMonth * bidToday;
             String currencyName = currencyA.getCurrency();
             String effectiveDate = currencyA.rates.get(0).effectiveDate;
             String code = currencyCode.toString().toUpperCase();
 
-            double balance = soldToday-100;
+            double balance = soldToday - 100;
             if (balance >= 0) {
                 compareBidAsk = "z zyskiem";
             } else {
@@ -69,7 +69,7 @@ public class Main {
 
     private static String getCurrencyFromUrl(URL url) throws IOException {
         URLConnection connection = url.openConnection();
-        try(InputStream inputStream = connection.getInputStream()) {
+        try (InputStream inputStream = connection.getInputStream()) {
             Scanner scanner = new Scanner(inputStream);
             return scanner.nextLine();
         } catch (FileNotFoundException f) {
