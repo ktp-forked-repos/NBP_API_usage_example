@@ -1,6 +1,5 @@
 import com.google.gson.Gson;
-import com.sun.tools.corba.se.idl.constExpr.Positive;
-
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -16,12 +15,13 @@ public class Main {
         String urlTableA = "http://api.nbp.pl/api/exchangerates/rates/a/";
         String urlTableC = "http://api.nbp.pl/api/exchangerates/rates/c/";
         LocalDate lastMonth = LocalDate.now().minusMonths(1);
-
+        System.out.println(lastMonth);
         List<CurrencyCode> currencyCodes = Arrays.asList(CurrencyCode.values());
         for (CurrencyCode currencyCode : currencyCodes) {
             String urlStringA = String.valueOf(new StringBuilder(urlTableA).append(currencyCode).append(FORMAT));
             String urlStringC = String.valueOf(new StringBuilder(urlTableC).append(currencyCode).append(FORMAT));
             String urlLastMonth = String.valueOf(new StringBuilder(urlTableC).append(currencyCode).append("/").append(lastMonth).append(FORMAT));
+
 
             URL urlA = new URL(urlStringA);
             URL urlC = new URL(urlStringC);
@@ -30,6 +30,12 @@ public class Main {
             String jsonCurrencyRateA = getCurrencyFromUrl(urlA);
             String jsonCurrencyRateC = getCurrencyFromUrl(urlC);
             String jsonCurrencyRateClm = getCurrencyFromUrl(urlClm);
+            while (jsonCurrencyRateClm.equals("404")){
+                lastMonth = lastMonth.minusDays(1);
+                urlLastMonth = String.valueOf(new StringBuilder(urlTableC).append(currencyCode).append("/").append(lastMonth).append(FORMAT));
+                urlClm = new URL(urlLastMonth);
+                jsonCurrencyRateClm = getCurrencyFromUrl(urlClm);
+            }
 
             Gson gson = new Gson();
             Currency currencyA = gson.fromJson(jsonCurrencyRateA, Currency.class);
@@ -40,21 +46,21 @@ public class Main {
             double midToday = currencyA.rates.get(0).mid;
             double bidToday = currencyC.rates.get(0).bid;
             double askLM = currencyClm.rates.get(0).ask;
-            double calculate100PLN = (1/midToday)*100;
-            double calculate100PLNbuyLastMonth = (1/askLM)*100;
-            double calculate100PLNsellToday = (1/bidToday)*100;
+            double calculate100PLN = (1 / midToday) * 100;
+            double calculate100PLNbuyLastMonth = (1 / askLM) * 100;
+            double calculate100PLNsellToday = (1 / bidToday) * 100;
             String currencyName = currencyA.getCurrency();
             String effectiveDate = currencyA.rates.get(0).effectiveDate;
             String code = currencyCode.toString().toUpperCase();
 
             double difference = calculate100PLNsellToday - calculate100PLNbuyLastMonth;
-            if (difference >= 0 ) {
+            if (difference >= 0) {
                 compareBidAsk = "z zyskiem";
             } else {
                 compareBidAsk = "ze stratą";
             }
 
-            System.out.printf("Waluta: %-18s | %s | %.4f PLN | 100 PLN = %.2f %s\n", currencyName ,effectiveDate, midToday, calculate100PLN, code);
+            System.out.printf("Waluta: %-18s | %s | %.4f PLN | 100 PLN = %.2f %s\n", currencyName, effectiveDate, midToday, calculate100PLN, code);
             System.out.printf("%-27s| %s za 100 PLN można było kupić %.2f %s , dzisiaj można je sprzedać %s %.2f PLN\n", "", lastMonth, calculate100PLNbuyLastMonth, code, compareBidAsk, difference);
             System.out.println();
         }
@@ -62,10 +68,11 @@ public class Main {
 
     private static String getCurrencyFromUrl(URL url) throws IOException {
         URLConnection connection = url.openConnection();
-        connection.setRequestProperty("user-agent", "Chrome");
         try(InputStream inputStream = connection.getInputStream()) {
             Scanner scanner = new Scanner(inputStream);
             return scanner.nextLine();
+        } catch (FileNotFoundException f) {
+            return "404";
         }
     }
 
